@@ -188,7 +188,9 @@ class SMock:
 
         Using "*" as kwargs:
         ```
-        >>> res = smock.mock_res("requests.get", ["https://mocked.url"], {'data': 'data'})
+        >>> res = smock.mock_res("requests.get",
+        ...         ["https://mocked.url"],
+        ...         {'data': 'data'})
         >>> res.status_code
         200
         >>> res.content
