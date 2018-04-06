@@ -9,7 +9,7 @@ from an external yaml file.
 """
 
 
-class MockWrapper(dict):
+class MockWrapper:
     """
     Wraps all the data returned by the mocked function to behave like a
     dictionary, like an object, like a function, like a jsonable dict...
@@ -17,7 +17,6 @@ class MockWrapper(dict):
     """
     def __init__(self, data):
         self.__data = data
-        super().__init__(data)
 
     def __getattr__(self, key):
         if key not in self.__data:
@@ -25,13 +24,13 @@ class MockWrapper(dict):
         return self.__getitem__(key)
 
     def __call__(self):
-        return MockWrapper(self.__data)
+        return wrapped(self.__data)
 
     def __getitem__(self, key):
         val = self.__data[key]
         if isinstance(val, (int, str)):
             return val
-        return MockWrapper(val)
+        return wrapped(val)
 
     def __str__(self):
         return str(self.__data)
@@ -62,6 +61,26 @@ class MockWrapper(dict):
 
     def get(self, key, defv=None):
         return self.__data.get(key, defv)
+
+
+class MockWrapperList(MockWrapper, list):
+    def __init__(self, data):
+        MockWrapper.__init__(self, data)
+        list.__init__(self, data)
+
+
+class MockWrapperDict(MockWrapper, dict):
+    def __init__(self, data):
+        MockWrapper.__init__(self, data)
+        dict.__init__(self, data)
+
+
+def wrapped(data):
+    if isinstance(data, dict):
+        return MockWrapperDict(data)
+    if isinstance(data, list):
+        return MockWrapperList(data)
+    return MockWrapper(data)
 
 
 def mock_match(A, B):
@@ -120,7 +139,7 @@ def mock_res(name, data, args=[], kwargs={}):
             response = res["response"]
             if isinstance(response, (int, str)):
                 return response
-            return MockWrapper(response)
+            return wrapped(response)
     raise Exception(
         "unknown data for mocking: \n%s:\n  - args: %s\n    kwargs: %s\n    response: ...\n" % (
             name, json.dumps(args), json.dumps(kwargs)

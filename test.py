@@ -14,11 +14,11 @@ class SMockTest(unittest.TestCase):
 
     def test_json(self):
         smocked = smock.SMock("tests/data.yaml")
-        response = smocked.mock_res("requests.get", "https://mocked.url")
-        print(response)
+        response = smocked.mock_res("testjsonable")
+        print("res", response)
         asjson = json.dumps(response)
+        print("res as json", asjson)
         assert asjson != "{}"
-        print(asjson)
 
 
 if __name__ == '__main__':
