@@ -28,8 +28,6 @@ class MockWrapper:
 
     def __getitem__(self, key):
         val = self.__data[key]
-        if isinstance(val, (int, str)):
-            return val
         return wrapped(val)
 
     def __str__(self):
@@ -80,6 +78,10 @@ def wrapped(data):
         return MockWrapperDict(data)
     if isinstance(data, list):
         return MockWrapperList(data)
+    if isinstance(data, str):
+        if data.startswith("file:"):
+            with open(data[5:]) as fd:
+                return fd.read()
     return MockWrapper(data)
 
 
@@ -131,7 +133,7 @@ def mock_res(name, data, args=[], kwargs={}):
             )
         )
     for res in data:
-        if (mock_match(args, res.get("args")) and
+        if (mock_match(args, res.get("args", [])) and
                 mock_match(kwargs, res.get("kwargs", {}))):
             if 'error' in res:
                 raise Exception(res["error"])

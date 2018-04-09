@@ -20,6 +20,13 @@ class SMockTest(unittest.TestCase):
         print("res as json", asjson)
         assert asjson != "{}"
 
+    def test_file(self):
+        smocked = smock.SMock("tests/data.yaml")
+        res = smocked.mock_res("withfile")
+        print("with file response", res)
+        assert res["nofile"] == "OK"
+        assert res.file.strip() == "OOK", res.file
+
 
 if __name__ == '__main__':
     unittest.main()
