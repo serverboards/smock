@@ -7,6 +7,18 @@ import unittest
 
 
 class SMockTest(unittest.TestCase):
+    def test_basic_smock(self):
+        import requests
+        smocked = smock.SMock("tests/data.yaml")
+        requests.get = smocked.mock_method("requests.get")
+        res = requests.get("https://mocked.url")
+        print(res)
+
+        assert res.status_code == 200, res
+        assert res.content == "Gocha!", res
+        assert res.json() == {"text": "Gocha too!"}, res.json()
+
+
     def test_docs(self):
         import doctest
         res = doctest.testmod(smock, report=True, verbose=True)

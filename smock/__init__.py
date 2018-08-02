@@ -21,13 +21,15 @@ class MockWrapper:
     def __getattr__(self, key):
         if key not in self.__data:
             raise KeyError("'%s' not found in %s" % (key, self.__data.keys()))
-        return self.__getitem__(key)
+        return wrapped(self.__getitem__(key))
 
     def __call__(self):
         return wrapped(self.__data)
 
     def __getitem__(self, key):
         val = self.__data[key]
+        if isinstance(val, (int, str)):
+            return val
         return wrapped(val)
 
     def __str__(self):
@@ -58,7 +60,7 @@ class MockWrapper:
         return self.__data.keys()
 
     def get(self, key, defv=None):
-        return self.__data.get(key, defv)
+        return wrapped(self.__data.get(key, defv))
 
 
 class MockWrapperList(MockWrapper, list):
@@ -78,10 +80,9 @@ def wrapped(data):
         return MockWrapperDict(data)
     if isinstance(data, list):
         return MockWrapperList(data)
-    if isinstance(data, str):
-        if data.startswith("file:"):
-            with open(data[5:]) as fd:
-                return fd.read()
+    if isinstance(data, str) and data.startswith("file:"):
+        with open(data[5:]) as fd:
+            return fd.read()
     return MockWrapper(data)
 
 
@@ -107,8 +108,17 @@ def mock_match(A, B):
     """
     if B == '*':  # always match
         return True
-    if isinstance(A, (tuple, list)):
+    if isinstance(A, (tuple, list)) and isinstance(B, (tuple, list)):
         return all(mock_match(a, b) for (a, b) in zip(A, B))
+    if type(A) != type(B):
+        return False
+    if isinstance(A, dict):
+        for k, v in A.items():
+            if not k in B:
+                return False
+            if not mock_match(v, B[k]):
+                return False
+        return True
     return A == B
 
 
@@ -133,8 +143,8 @@ def mock_res(name, data, args=[], kwargs={}):
             )
         )
     for res in data:
-        if (mock_match(args, res.get("args", [])) and
-                mock_match(kwargs, res.get("kwargs", {}))):
+        if (mock_match(args, res.get("args", [])) and 
+            mock_match(kwargs, res.get("kwargs", {}))):
             if 'error' in res:
                 raise Exception(res["error"])
 
