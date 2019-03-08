@@ -40,6 +40,24 @@ class SMockTest(unittest.TestCase):
         assert res["nofile"] == "OK"
         assert res.file.strip() == "OOK", res.file
 
+    def test_attr_get(self):
+        smocked = smock.SMock("tests/data.yaml")
+        res = smocked.mock_res("withfile")
+        try:
+            a = res.notexists
+            raise Exception("Should raise!")
+        except AttributeError:
+            pass
+        except:
+            raise Exception("Should raise AttributeError!")
+        try:
+            a = res["notexists"]
+            raise Exception("Should raise!")
+        except KeyError:
+            pass
+        except:
+            raise Exception("Should raise AttributeError!")
+
 
 if __name__ == '__main__':
     unittest.main()
