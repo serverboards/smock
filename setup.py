@@ -21,3 +21,7 @@ setup(
   long_description=README,
   long_description_content_type="text/markdown",
 )
+
+# to upload to pypi:
+# python3 setup.py sdist
+# twine upload dist/LATEST.tgz
