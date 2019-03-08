@@ -1,23 +1,23 @@
 requests.get:
   - args:
       - https://mocked.url
-    response:
+    result:
       status_code: 200
       content: Gocha!
       json:
         text: Gocha too!
   - args: "*"
-    response:
+    result:
       status_code: 404
   - args: "*"
     kwargs: "*"
-    response:
+    result:
       content: "Mocked query"
       status_code: 200
 
 testjsonable:
   - args: []
-    response:
+    result:
     - a: 1
       b: 2
     - a: 3
@@ -25,6 +25,6 @@ testjsonable:
     - [1,2,3]
 
 withfile:
-  - response:
+  - result:
       nofile: OK
       file: file:tests/OOK.txt

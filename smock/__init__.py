@@ -24,15 +24,17 @@ class MockWrapper:
         self.__data = data
 
     def __getattr__(self, key):
-        if key not in self.__data:
-            raise KeyError("'%s' not found in %s" % (key, self.__data.keys()))
-        return wrapped(self.__getitem__(key))
+        if isinstance(self, dict):
+            if key not in self.__data:
+                raise KeyError("'%s' not found in %s" % (key, self.__data.keys()))
+            return wrapped(self.__getitem__(key))
+        return getattr(self.__data, key)
 
     def __call__(self):
-        return MockWrapper(self.__data)
+        return self
 
     def __getitem__(self, key):
-        return MockWrapper(self.__data[key])
+        return wrapped(self.__data[key])
 
     def __str__(self):
         return str(self.__data)
@@ -58,9 +60,9 @@ class MockWrapper:
     def __len__(self):
         return self.__data.__len__()
 
-    def keys(self):
-        return self.__data.keys()
-
+    # def keys(self):
+    #     return self.__data.keys()
+    #
     def get(self, key, defv=None):
         return wrapped(self.__data.get(key, defv))
 
