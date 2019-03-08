@@ -1,7 +1,6 @@
 import json
 import yaml
 import logging
-import json
 
 
 logger = logging.getLogger(__name__)
@@ -27,7 +26,7 @@ class MockWrapper:
     def __getattr__(self, key):
         if key not in self.__data:
             raise KeyError("'%s' not found in %s" % (key, self.__data.keys()))
-        return MockWrapper(self.__data[key])
+        return wrapped(self.__getitem__(key))
 
     def __call__(self):
         return MockWrapper(self.__data)
@@ -63,10 +62,33 @@ class MockWrapper:
         return self.__data.keys()
 
     def get(self, key, defv=None):
-        return self.__data.get(key, defv)
+        return wrapped(self.__data.get(key, defv))
 
     def to_json(self):
         return json.dumps(self.__data)
+
+
+class MockWrapperList(MockWrapper, list):
+    def __init__(self, data):
+        MockWrapper.__init__(self, data)
+        list.__init__(self, data)
+
+
+class MockWrapperDict(MockWrapper, dict):
+    def __init__(self, data):
+        MockWrapper.__init__(self, data)
+        dict.__init__(self, data)
+
+
+def wrapped(data):
+    if isinstance(data, dict):
+        return MockWrapperDict(data)
+    if isinstance(data, list):
+        return MockWrapperList(data)
+    if isinstance(data, str) and data.startswith("file:"):
+        with open(data[5:]) as fd:
+            return fd.read()
+    return MockWrapper(data)
 
 
 def mock_match(A, B):
@@ -91,8 +113,17 @@ def mock_match(A, B):
     """
     if B == '*':  # always match
         return True
-    if isinstance(A, (tuple, list)):
+    if isinstance(A, (tuple, list)) and isinstance(B, (tuple, list)):
         return all(mock_match(a, b) for (a, b) in zip(A, B))
+    if type(A) != type(B):
+        return False
+    if isinstance(A, dict):
+        for k, v in A.items():
+            if k not in B:
+                return False
+            if not mock_match(v, B[k]):
+                return False
+        return True
     return A == B
 
 
@@ -121,8 +152,14 @@ def mock_res(name, data, args=[], kwargs={}):
             )
         )
     for res in data:
-        if mock_match(args, res.get("args")) and mock_match(kwargs, res.get("kwargs", {})):
-            return MockWrapper(res["result"])
+        if mock_match(args, res.get("args", [])) and mock_match(kwargs, res.get("kwargs", {})):
+            if 'error' in res:
+                raise Exception(res["error"])
+
+            result = res["result"]
+            if isinstance(result, (int, str)):
+                return result
+            return wrapped(result)
 
     logger.error(
         "unknown data for mocking: %s: { args: %s, kwargs: %s }" % (

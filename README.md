@@ -58,7 +58,11 @@ This mocked data returns a special object that behaves like a dict, an object a
 callable function and so on. In this case we call the `json()` virtual method
 to just get an object with a `description` field.
 
+## Extra goodies
+
+* All data is mocked to behave like a dict, a object and a function
+* Can load external data with `file:FILENAME`
+
 ## Contributing
 
 If you have ideas, improvements or comments, please open a github issue.
-
