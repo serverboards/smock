@@ -60,6 +60,12 @@ class MockWrapper:
     def __len__(self):
         return self.__data.__len__()
 
+    def __int__(self):
+        return int(self.__data)
+
+    def __float__(self):
+        return float(self.__data)
+
     # def keys(self):
     #     return self.__data.keys()
     #

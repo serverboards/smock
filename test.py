@@ -16,6 +16,9 @@ class SMockTest(unittest.TestCase):
         assert res.status_code == 200, res
         assert res.content == "Gocha!", res
         assert res.json() == {"text": "Gocha too!"}, res.json()
+        assert int(res.status_code) == 200, type(res.status_code)
+        assert float(res.status_code) == 200.0, type(res.status_code)
+        assert str(res.status_code) == "200", type(res.status_code)
 
     def test_docs(self):
         import doctest
