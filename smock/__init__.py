@@ -1,5 +1,10 @@
 import json
 import yaml
+import logging
+import json
+
+
+logger = logging.getLogger(__name__)
 
 """
 SMock -- Serverboards Mock library -- Mock comfortably.
@@ -12,25 +17,23 @@ from an external yaml file.
 class MockWrapper:
     """
     Wraps all the data returned by the mocked function to behave like a
-    dictionary, like an object, like a function, like a jsonable dict...
-    like almost everything you may need
+    dictionary, like an object, like a function... like almost everything you
+    may need
     """
+
     def __init__(self, data):
         self.__data = data
 
     def __getattr__(self, key):
         if key not in self.__data:
             raise KeyError("'%s' not found in %s" % (key, self.__data.keys()))
-        return self.__getitem__(key)
+        return MockWrapper(self.__data[key])
 
     def __call__(self):
-        return wrapped(self.__data)
+        return MockWrapper(self.__data)
 
     def __getitem__(self, key):
-        val = self.__data[key]
-        if isinstance(val, (int, str)):
-            return val
-        return wrapped(val)
+        return MockWrapper(self.__data[key])
 
     def __str__(self):
         return str(self.__data)
@@ -62,25 +65,8 @@ class MockWrapper:
     def get(self, key, defv=None):
         return self.__data.get(key, defv)
 
-
-class MockWrapperList(MockWrapper, list):
-    def __init__(self, data):
-        MockWrapper.__init__(self, data)
-        list.__init__(self, data)
-
-
-class MockWrapperDict(MockWrapper, dict):
-    def __init__(self, data):
-        MockWrapper.__init__(self, data)
-        dict.__init__(self, data)
-
-
-def wrapped(data):
-    if isinstance(data, dict):
-        return MockWrapperDict(data)
-    if isinstance(data, list):
-        return MockWrapperList(data)
-    return MockWrapper(data)
+    def to_json(self):
+        return json.dumps(self.__data)
 
 
 def mock_match(A, B):
@@ -112,9 +98,9 @@ def mock_match(A, B):
 
 def mock_res(name, data, args=[], kwargs={}):
     """
-    Given a name, data and call parameters, returns the mocked response
+    Given a name, data and call parameters, returns the mocked result
 
-    If there is no matching response, raises an exception that can be used to
+    If there is no matching result, raises an exception that can be used to
     prepare the mock data.
 
     This can be used for situations where you mock some function like data;
@@ -125,24 +111,27 @@ def mock_res(name, data, args=[], kwargs={}):
     """
     data = data.get(name)
     if not data:
+        print(args)
+        logger.error("unknown method for mocking: %s: { args: %s, kwargs: %s }" % (
+            name, try_json_dump(args), try_json_dump(kwargs)
+        ))
         raise Exception(
-            "unknown method for mocking: \n%s:\n  - args: %s\n    kwargs: %s\n    response: ...\n" % (
-                name, json.dumps(args), json.dumps(kwargs)
+            "unknown method for mocking: %s: { args: %s, kwargs: %s }" % (
+                name, try_json_dump(args), try_json_dump(kwargs)
             )
         )
     for res in data:
-        if (mock_match(args, res.get("args")) and
-                mock_match(kwargs, res.get("kwargs", {}))):
-            if 'error' in res:
-                raise Exception(res["error"])
+        if mock_match(args, res.get("args")) and mock_match(kwargs, res.get("kwargs", {})):
+            return MockWrapper(res["result"])
 
-            response = res["response"]
-            if isinstance(response, (int, str)):
-                return response
-            return wrapped(response)
+    logger.error(
+        "unknown data for mocking: %s: { args: %s, kwargs: %s }" % (
+            name, try_json_dump(args), try_json_dump(kwargs)
+        ))
+
     raise Exception(
-        "unknown data for mocking: \n%s:\n  - args: %s\n    kwargs: %s\n    response: ...\n" % (
-            name, json.dumps(args), json.dumps(kwargs)
+        "unknown data for mocking: %s: { args: %s, kwargs: %s }" % (
+            name, try_json_dump(args), try_json_dump(kwargs)
         )
     )
 
@@ -186,10 +175,11 @@ class SMock:
     ```
 
     The mock file is a yaml file with each mocked function as keys, and
-    `args`/`kwargs` as calling args and kwargs, and `response` the response.
+    `args`/`kwargs` as calling args and kwargs, and `result` the result.
 
     Check `tests/data.yaml` for an example at the source code.
     """
+
     def __init__(self, mockfile):
         with open(mockfile) as fd:
             self._data = yaml.load(fd)
@@ -240,3 +230,32 @@ class SMock:
         Calls `mock_method_async`
         """
         return await mock_method_async(name, self._data)
+
+
+def try_json_dump(data):
+    return json.dumps(data, default=lambda _: "*")
+
+
+# monkey patch, to allow json encode of smock objects
+default_json_encode = json.JSONEncoder.default
+
+
+def json_encode_smock(_self, obj):
+    if isinstance(obj, MockWrapper):
+        return obj.to_json()
+    return default_json_encode(obj)
+
+
+json.JSONEncoder.default = json_encode_smock
+
+
+if __name__ == '__main__':
+    print("Testing smock...")
+    import doctest
+    import sys
+    res = doctest.testmod()
+    if not res.failed:
+        print("Done:", res)
+    else:
+        print("Failed:", res)
+    sys.exit(res.failed)
