@@ -3,12 +3,15 @@ import pathlib
 
 HERE = pathlib.Path(__file__).parent
 
-README = (HERE / "README.md").read_text()
+try:
+    README = (HERE / "README.md").read_text()
+except:
+    README = ""
 
 setup(
   name='smock',
   packages=['smock'],  # this must be the same as the name above
-  version='0.2.2',
+  version='0.2.4',
   description='Serverboards Mock library',
   author='David Moreno',
   author_email='dmoreno@serverboards.io',
@@ -24,4 +27,4 @@ setup(
 
 # to upload to pypi:
 # python3 setup.py sdist
-# twine upload dist/LATEST.tgz
+    # twine upload dist/LATEST.tgz
