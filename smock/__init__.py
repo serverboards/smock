@@ -26,8 +26,10 @@ class MockWrapper:
     def __getattr__(self, key):
         if isinstance(self, dict):
             if key not in self.__data:
-                raise AttributeError("'%s' not found in %s" % (key, self.__data.keys()))
+                raise AttributeError("'%s' not found" % key)
             return wrapped(self.__getitem__(key))
+        if key == '_MockWrapper__data':
+            raise AttributeError("_MockWrapper__data not found")
         return getattr(self.__data, key)
 
     def __call__(self):
