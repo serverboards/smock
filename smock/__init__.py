@@ -150,7 +150,6 @@ def mock_res(name, data, args=[], kwargs={}):
     """
     data = data.get(name)
     if not data:
-        print(args)
         logger.error("unknown method for mocking: %s: { args: %s, kwargs: %s }" % (
             name, try_json_dump(args), try_json_dump(kwargs)
         ))
@@ -162,9 +161,11 @@ def mock_res(name, data, args=[], kwargs={}):
     for res in data:
         if mock_match(args, res.get("args", [])) and mock_match(kwargs, res.get("kwargs", {})):
             if 'error' in res:
+                logger.debug("Mock result error: %s" % res["error"])
                 raise Exception(res["error"])
 
             result = res["result"]
+            logger.debug("Mock result: %s" % res["result"])
             if isinstance(result, (int, str)):
                 return result
             return wrapped(result)
@@ -186,6 +187,7 @@ def mock_method(name, data):
     Returns a function that mocks an original function.
     """
     def mockf(*args, **kwargs):
+        logger.debug("Mock call %s(%s, %s)" % (name, args, kwargs))
         return mock_res(name, data, args, kwargs)
     return mockf
 
