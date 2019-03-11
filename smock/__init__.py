@@ -166,6 +166,9 @@ def mock_res(name, data, args=[], kwargs={}):
                 logger.debug("Mock result error: %s" % res["error"])
                 raise Exception(res["error"])
 
+            if 'result:raw' in res:
+                return res["result:raw"]
+
             result = res["result"]
             logger.debug("Mock result: %s" % res["result"])
             if isinstance(result, (int, str)):
