@@ -187,21 +187,36 @@ def mock_res(name, data, args=[], kwargs={}):
     )
 
 
-def mock_method(name, data):
+def mock_method(name, data, calls=None):
     """
     Returns a function that mocks an original function.
+
+    If calls is a list, the call is appended.
     """
     def mockf(*args, **kwargs):
         logger.debug("Mock call %s(%s, %s)" % (name, args, kwargs))
+        if calls is not None:
+            calls.append({
+                "name": name,
+                "args": args,
+                "kwargs": kwargs,
+            })
         return mock_res(name, data, args, kwargs)
     return mockf
 
 
-def mock_method_async(name, data):
+def mock_method_async(name, data, calls=None):
     """
     Returns an async function that mocks an original async function
     """
     async def mockf(*args, **kwargs):
+        logger.debug("Mock async call %s(%s, %s)" % (name, args, kwargs))
+        if calls is not None:
+            calls.append({
+                "name": name,
+                "args": args,
+                "kwargs": kwargs,
+            })
         return mock_res(name, data, args, kwargs)
     return mockf
 
@@ -235,6 +250,7 @@ class SMock:
     def __init__(self, mockfile):
         with open(mockfile) as fd:
             self._data = yaml.load(fd)
+        self.calls = []
 
     def mock_res(self, name, args=[], kwargs={}):
         """
@@ -275,7 +291,7 @@ class SMock:
         """
         Calls `mock_method`
         """
-        return mock_method(name, self._data)
+        return mock_method(name, self._data, self.calls)
 
     async def mock_method_async(self, name):
         """
