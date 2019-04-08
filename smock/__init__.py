@@ -250,13 +250,27 @@ class SMock:
     The mock file is a yaml file with each mocked function as keys, and
     `args`/`kwargs` as calling args and kwargs, and `result` the result.
 
+    Several mockfiles can be passed in, and they will add possible calls
+    to be mocked.
+
     Check `tests/data.yaml` for an example at the source code.
     """
 
-    def __init__(self, mockfile):
-        with open(mockfile) as fd:
-            self._data = yaml.load(fd)
+    def __init__(self, *mockfiles):
+        self._data = {}
+
+        # Can set several mockfiles, and they just previous list of methods
+        for mockfile in mockfiles:
+            self.load(mockfile)
+
         self.calls = []
+
+    def load(self, mockfile):
+        with open(mockfile) as fd:
+            for k, v in yaml.safe_load(fd).items():
+                d = self._data.get(k, [])
+                v = d + v
+                self._data[k] = v
 
     def mock_res(self, name, args=[], kwargs={}):
         """

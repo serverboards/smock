@@ -8,7 +8,7 @@ import unittest
 class SMockTest(unittest.TestCase):
     def test_basic_smock(self):
         import requests
-        smocked = smock.SMock("tests/data.yaml")
+        smocked = smock.SMock("tests/data2.yaml", "tests/data.yaml")
         requests.get = smocked.mock_method("requests.get")
         res = requests.get("https://mocked.url")
         print(res)
@@ -19,6 +19,9 @@ class SMockTest(unittest.TestCase):
         assert int(res.status_code) == 200, type(res.status_code)
         assert float(res.status_code) == 200.0, type(res.status_code)
         assert str(res.status_code) == "200", type(res.status_code)
+
+        res = requests.get("https://mocked.data2.url")
+        assert res.status_code == 200, res
 
     def test_docs(self):
         import doctest

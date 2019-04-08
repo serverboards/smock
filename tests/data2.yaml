@@ -1,0 +1,5 @@
+requests.get:
+  - args:
+      - https://mocked.data2.url
+    result:
+      status_code: 200
