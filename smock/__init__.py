@@ -69,6 +69,9 @@ class MockWrapper:
     def __float__(self):
         return float(self.__data)
 
+    def __hash__(self):
+        return self.__data.__hash__()
+
     # def keys(self):
     #     return self.__data.keys()
     #

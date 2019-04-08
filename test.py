@@ -77,5 +77,14 @@ class SMockTest(unittest.TestCase):
         assert a != b
         assert a == a
 
+    def test_hashable(self):
+        a = smock.wrapped(10)
+
+        assert a not in [20, 30]
+        assert a in [10, 20, 30]
+        assert 10 in [a, 20, 30]
+        assert hash(a) == hash(10)
+
+
 if __name__ == '__main__':
     unittest.main()
