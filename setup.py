@@ -11,7 +11,7 @@ except:
 setup(
   name='smock',
   packages=['smock'],  # this must be the same as the name above
-  version='0.2.8',
+  version='0.2.9',
   description='Serverboards Mock library',
   author='David Moreno',
   author_email='dmoreno@serverboards.io',

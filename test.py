@@ -58,6 +58,24 @@ class SMockTest(unittest.TestCase):
         except:
             raise Exception("Should raise AttributeError!")
 
+    def test_ops(self):
+        a = smock.wrapped(100)
+        b = smock.wrapped(200)
+
+        assert a < 200
+        assert b > 100
+        assert a < b
+        assert b > a
+
+        assert a <= 100
+        assert b >= 200
+        assert a >= 100
+        assert b <= 200
+        assert a <= b
+        assert b >= a
+
+        assert a != b
+        assert a == a
 
 if __name__ == '__main__':
     unittest.main()

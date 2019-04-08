@@ -45,19 +45,20 @@ class MockWrapper:
         return repr(self.__data)
 
     def __eq__(self, other):
-        return self.__data.__eq__(other)
+        # A bit convoluted, but if both are MockWrappers, after two clls the real objects are just tested for eq.
+        return other.__eq__(self.__data)
 
     def __le__(self, other):
-        return self.__data.__le__(other)
-
-    def __ge__(self, other):
-        return self.__data.__ge__(other)
+        return other.__ge__(self.__data)
 
     def __lt__(self, other):
-        return self.__data.__lt__(other)
+        return other.__gt__(self.__data)
+
+    def __ge__(self, other):
+        return other.__le__(self.__data)
 
     def __gt__(self, other):
-        return self.__data.__gt__(other)
+        return other.__lt__(self.__data)
 
     def __len__(self):
         return self.__data.__len__()
@@ -91,6 +92,8 @@ class MockWrapperDict(MockWrapper, dict):
 
 
 def wrapped(data):
+    if isinstance(data, MockWrapper):
+        return data
     if isinstance(data, dict):
         return MockWrapperDict(data)
     if isinstance(data, list):
