@@ -88,6 +88,41 @@ class SMockTest(unittest.TestCase):
         assert 10 in [a, 20, 30]
         assert hash(a) == hash(10)
 
+    def test_ops(self):
+        a = smock.wrapped(0.0)
+        b = smock.wrapped(10.0)
+        c = smock.wrapped(3.0)
+
+        assert (a or 1.0) == 1.0
+        assert (a and 1.0) == 0.0
+        assert (b or 1.0) == 10.0
+        assert (b and 1.0) == 1.0
+
+        assert (0 or a) == 0.0
+        assert (a and 1.0) == 0.0
+        assert (b or 1.0) == 10.0
+        assert (b and 1.0) == 1.0
+
+        assert (a * 10) == 0.0
+        assert (b * 10) == 100.0
+        assert (b * c) == 30.0
+
+        assert (a / 10) == 0.0
+        assert (b / 10) == 1.0
+        assert (b / 10.0) == 1.0
+        assert (b / c) > 3.333 and (b / c) < 3.334
+
+        assert (a // 10) == 0
+        assert (b // 10) == 1
+        assert (b // 10.0) == 1
+        assert (b // c) == 3
+
+        assert -b == -10.0
+
+        assert not smock.wrapped(False), True
+
+        assert (smock.wrapped(True) ^ smock.wrapped(True)) is False
+
 
 if __name__ == '__main__':
     unittest.main()

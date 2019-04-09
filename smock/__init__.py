@@ -61,7 +61,7 @@ class MockWrapper:
         return other.__lt__(self.__data)
 
     def __len__(self):
-        return self.__data.__len__()
+        return len(self.__data)
 
     def __int__(self):
         return int(self.__data)
@@ -71,6 +71,55 @@ class MockWrapper:
 
     def __hash__(self):
         return self.__data.__hash__()
+
+    def __not__(self):
+        return not self.__data
+
+    def __or__(self, other):
+        if isinstance(other, MockWrapper):
+            other = other.__data
+        return self.__data or other
+
+    def __and__(self, other):
+        if isinstance(other, MockWrapper):
+            other = other.__data
+        return self.__data and other
+
+    def __xor__(self, other):
+        if isinstance(other, MockWrapper):
+            other = other.__data
+        return self.__data ^ other
+
+    def __add__(self, other):
+        if isinstance(other, MockWrapper):
+            other = other.__data
+        return self.__data + other
+
+    def __sub__(self, other):
+        if isinstance(other, MockWrapper):
+            other = other.__data
+        return self.__data - other
+
+    def __mul__(self, other):
+        if isinstance(other, MockWrapper):
+            other = other.__data
+        return self.__data * other
+
+    def __truediv__(self, other):
+        if isinstance(other, MockWrapper):
+            other = other.__data
+        return self.__data / other
+
+    def __floordiv__(self, other):
+        if isinstance(other, MockWrapper):
+            other = other.__data
+        return self.__data // other
+
+    def __bool__(self):
+        return bool(self.__data)
+
+    def __neg__(self):
+        return -self.__data
 
     # def keys(self):
     #     return self.__data.keys()
