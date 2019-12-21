@@ -1,5 +1,5 @@
-from distutils.core import setup
 import pathlib
+import setuptools
 
 HERE = pathlib.Path(__file__).parent
 
@@ -8,10 +8,10 @@ try:
 except:
     README = ""
 
-setup(
+setuptools.setup(
   name='smock',
   packages=['smock'],  # this must be the same as the name above
-  version='0.2.12',
+  version='0.2.13',
   description='Serverboards Mock library',
   author='David Moreno',
   author_email='dmoreno@serverboards.io',
