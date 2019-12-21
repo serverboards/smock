@@ -153,6 +153,8 @@ def wrapped(data):
     if isinstance(data, str) and data.startswith("file:"):
         with open(data[5:]) as fd:
             return fd.read()
+    if isinstance(data, (str, int, float)):
+        return data
     return MockWrapper(data)
 
 
